@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import Search from './components/Search';
 import AddPerson from './components/AddPerson';
 import AddressBook from './components/AddressBook';
+import SuccessNotification from './components/SuccessNotification';
+import FailNotification from './components/FailNotification';
 import api from './services/api';
 
 const App = () => {
@@ -10,6 +12,8 @@ const App = () => {
   const [newNumber, setNewNumber] = useState('');
   const [searchValue, setSearchValue] = useState('');
   const [results, setResults] = useState([]);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     api
@@ -27,9 +31,13 @@ const App = () => {
       const record = persons.map(person => person).find(person => person.name === newPerson.name);
       console.log(newPerson);
       let res = window.confirm(`${newPerson.name} is already in the Phone Book. Would you like to update their number to the one provided?`)
-      res
-        ? updateNumber(record.id, newPerson)
-        : setPersons(persons); setNewName(''); setNewNumber('');
+      if (res) {
+        updateNumber(record.id, newPerson)
+      } else {
+        setPersons(persons);
+        setNewName('');
+        setNewNumber('');
+      };
     } else {
       newPerson.id = Math.random()
       api
@@ -38,8 +46,17 @@ const App = () => {
           setPersons([...persons, newPerson])
           setNewName('')
           setNewNumber('')
+          setSuccessMessage('Successfully added contact')
+          setTimeout(() => {
+            setSuccessMessage(null);
+          }, 5000)
         })
-        .catch(e => `Error ${e}`)
+        .catch(e => {
+          setErrorMessage('Error adding contact')
+          setTimeout(() => {
+            setErrorMessage(null)
+          }, 5000);
+        })
     }
   };
 
@@ -48,16 +65,30 @@ const App = () => {
       .update(id, newObject)
       .then(updatedPerson => {
         setPersons(persons.map(person => person.id ? person : updatedPerson))
+        setNewNumber('')
+        setNewName('');
+        setSuccessMessage('Successfully updated number!');
+        setTimeout(() => {
+          setSuccessMessage('');
+        }, 5000)
+      })
+      .catch(e => {
+        setSuccessMessage('');
+        setErrorMessage('Error updating number. That contact was recently deleted');
       })
   }
 
   const removePerson = id => {
-    const personToRemove = persons.filter(person => person.id !== id)
-    console.log(personToRemove);
     api
       .remove(id)
       .then(removedPerson => {
         setPersons(persons);
+        setErrorMessage('');
+        setSuccessMessage('Successfully removed!');
+      })
+      .catch(e => {
+        setSuccessMessage('');
+        setErrorMessage('Could not remove contact');
       })
   }
 
@@ -65,11 +96,7 @@ const App = () => {
     e.preventDefault();
     const searchValue = e.target[0].value;
     if (searchValue === '' || searchValue === ' ') {
-      return (
-        <div style={{ backgroundColor: 'salmon', color: 'maroon' }}>
-          You must enter a search term!
-        </div>
-      )
+      return
     } else {
       const filteredResult = persons.filter(person => person.name.includes(searchValue))
       setResults(filteredResult);
@@ -105,6 +132,8 @@ const App = () => {
         newNumber={newNumber}
         handleNumberChange={handleNumberChange} 
       />
+      <SuccessNotification message={successMessage} />
+      <FailNotification message={errorMessage} />
 
       <AddressBook 
         persons={persons}
