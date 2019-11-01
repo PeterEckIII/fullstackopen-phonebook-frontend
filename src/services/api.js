@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const baseUrl = '/api/people'
+const baseUrl = '/api/persons'
 
 const getAll = () => {
     const request = axios.get(baseUrl);
@@ -8,17 +8,17 @@ const getAll = () => {
 }
 
 const create = personObj => {
-    const request = axios.post(`${baseUrl}`, personObj);
+    const request = axios.post(`${ baseUrl }`, personObj);
     return request.then(res => res.data);
 }
 
 const update = (id, updatedPerson) => {
-    const request = axios.put(`${baseUrl}/${id}`, updatedPerson)
+    const request = axios.put(`${ baseUrl }/${ id }`, updatedPerson)
     return request.then(res => res.data);
 }
 
 const remove = id => {
-    const request = axios.delete(`${baseUrl}/${id}`, id);
+    const request = axios.delete(`${ baseUrl }/${ id }`, id);
     return request.then(res => res.data);
 }
 
